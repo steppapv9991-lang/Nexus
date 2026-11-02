@@ -1,0 +1,81 @@
+# NexusAI Configuration
+# Documentation: https://github.com/nexusai/nexus-core/wiki
+
+profiles:
+  default:
+    model: "claude-sonnet-4-20250514"
+    provider: "anthropic"
+    max_tokens: 8192
+    temperature: 0.3
+
+  fast:
+    model: "gpt-4o-mini"
+    provider: "openai"
+    max_tokens: 4096
+    temperature: 0.5
+
+  local:
+    model: "codellama:34b"
+    provider: "ollama"
+    base_url: "http://localhost:11434"
+    max_tokens: 4096
+
+models:
+  primary:
+    model_id: "claude-sonnet-4-20250514"
+    provider: "anthropic"
+    api_key: "${ANTHROPIC_API_KEY}"
+    context_window: 200000
+    input_cost: 3.0
+    output_cost: 15.0
+    fallback_models: ["gpt-4o"]
+
+  secondary:
+    model_id: "gpt-4o"
+    provider: "openai"
+    api_key: "${OPENAI_API_KEY}"
+    context_window: 128000
+    input_cost: 2.5
+    output_cost: 10.0
+    fallback_models: ["claude-sonnet-4-20250514"]
+
+context:
+  max_tokens: 128000
+  compression_threshold: 0.8
+  auto_compress: true
+
+security:
+  sandbox:
+    enabled: true
+    allowed_paths:
+      - "."
+      - "/tmp/nexus-*"
+    blocked_paths:
+      - "/etc/**"
+      - "~/.ssh/**"
+      - "~/.aws/**"
+  shell:
+    allowed_commands:
+      - "ls"
+      - "cat"
+      - "grep"
+      - "find"
+      - "git"
+      - "npm"
+      - "python"
+      - "node"
+    require_approval:
+      - "rm"
+      - "mv"
+      - "sudo"
+
+skills:
+  directory: "./skills"
+  auto_load: true
+  max_tools_in_context: 15
+
+ui:
+  theme: "dark"
+  streaming: true
+  show_thoughts: true
+  diff_preview: true

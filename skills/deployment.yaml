@@ -1,0 +1,74 @@
+# skills/deployment.yaml
+# Пример YAML-манифеста для скиллов
+
+skills:
+  - name: "deploy_docker"
+    description: "Build and deploy Docker container"
+    category: "devops"
+    risk_level: "high"
+    requires_approval: true
+    tags: ["docker", "deploy", "container"]
+    parameters:
+      - name: "service_name"
+        type: "string"
+        description: "Name of the service to deploy"
+        required: true
+      - name: "tag"
+        type: "string"
+        description: "Docker image tag"
+        required: false
+        default: "latest"
+      - name: "registry"
+        type: "string"
+        description: "Docker registry URL"
+        required: false
+        default: "docker.io"
+    handler_module: "skills.devops"
+    handler_function: "deploy_docker"
+
+  - name: "run_tests"
+    description: "Run test suite for the project"
+    category: "testing"
+    risk_level: "low"
+    requires_approval: false
+    tags: ["test", "pytest", "jest", "unittest"]
+    parameters:
+      - name: "test_path"
+        type: "string"
+        description: "Path to test file or directory"
+        required: false
+        default: "."
+      - name: "framework"
+        type: "string"
+        description: "Test framework to use"
+        required: false
+        default: "auto"
+        enum: ["auto", "pytest", "jest", "mocha", "unittest"]
+      - name: "verbose"
+        type: "boolean"
+        description: "Enable verbose output"
+        required: false
+        default: false
+    handler_module: "skills.testing"
+    handler_function: "run_tests"
+
+  - name: "analyze_dependencies"
+    description: "Analyze project dependencies for vulnerabilities and updates"
+    category: "security"
+    risk_level: "low"
+    requires_approval: false
+    tags: ["security", "dependencies", "audit", "npm", "pip"]
+    parameters:
+      - name: "package_manager"
+        type: "string"
+        description: "Package manager to analyze"
+        required: false
+        default: "auto"
+        enum: ["auto", "npm", "pip", "cargo", "go"]
+      - name: "include_dev"
+        type: "boolean"
+        description: "Include dev dependencies"
+        required: false
+        default: true
+    handler_module: "skills.security"
+    handler_function: "analyze_deps"
