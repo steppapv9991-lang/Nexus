@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Terminal,
   Copy,
   Check,
-  ChevronRight,
   Package,
   Shield,
   Zap,
@@ -16,31 +15,22 @@ import {
   CheckCircle2,
   ArrowRight,
   Download,
-  FolderOpen,
   Key,
   Rocket,
   BookOpen,
   ExternalLink,
   ChevronDown,
   Info,
+  Lightbulb,
+  HelpCircle,
+  FolderOpen,
+  Code2,
+  Layers,
+  Eye,
+  MousePointer,
 } from 'lucide-react';
 
-// ─── Terminal Line Component ────────────────────────────────────────────────
-interface TermLineProps {
-  prompt?: boolean;
-  children: React.ReactNode;
-  delay?: number;
-  className?: string;
-}
-
-const TermLine: React.FC<TermLineProps> = ({ prompt, children, className = '' }) => (
-  <div className={`flex gap-2 ${className}`}>
-    {prompt && <span className="text-emerald-400 select-none shrink-0">❯</span>}
-    <span className={prompt ? 'text-white' : 'text-slate-400'}>{children}</span>
-  </div>
-);
-
-// ─── Copyable Command Block ─────────────────────────────────────────────────
+// ─── Копируемый блок команд ─────────────────────────────────────────────────
 interface CmdBlockProps {
   commands: string[];
   title?: string;
@@ -70,73 +60,69 @@ const CmdBlock: React.FC<CmdBlockProps> = ({ commands, title, comment }) => {
           </div>
           <button
             onClick={handleCopy}
-            className="flex items-center gap-1 px-2 py-1 text-xs text-slate-400 hover:text-white bg-slate-700/40 hover:bg-slate-600/40 rounded transition-all"
+            className="flex items-center gap-1 px-2.5 py-1 text-xs text-slate-400 hover:text-white bg-slate-700/40 hover:bg-slate-600/40 rounded-md transition-all"
           >
             {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-            {copied ? 'Copied!' : 'Copy'}
+            {copied ? 'Скопировано!' : 'Копировать'}
           </button>
         </div>
       )}
       <div className="p-4 font-mono text-sm leading-relaxed overflow-x-auto">
         {comment && <div className="text-slate-600 mb-2"># {comment}</div>}
-        {commands.map((cmd, i) => (
-          <div key={i} className="flex gap-2">
-            <span className="text-emerald-400 select-none">$</span>
-            <span className="text-slate-200">{cmd}</span>
-          </div>
-        ))}
+        {commands.map((cmd, i) => {
+          const isOutput = cmd.startsWith('# →') || cmd.startsWith('#');
+          const isEmpty = cmd === '';
+          return (
+            <div key={i} className={`flex gap-2 ${isEmpty ? 'h-3' : ''}`}>
+              {!isEmpty && !isOutput && <span className="text-emerald-400 select-none shrink-0">$</span>}
+              <span className={isOutput ? 'text-slate-500' : 'text-slate-200'}>{cmd}</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 };
 
-// ─── Step Card ──────────────────────────────────────────────────────────────
+// ─── Карточка шага ──────────────────────────────────────────────────────────
 interface StepCardProps {
   number: number;
   title: string;
   icon: React.ReactNode;
   children: React.ReactNode;
-  status?: 'done' | 'current' | 'pending';
+  color?: string;
 }
 
-const StepCard: React.FC<StepCardProps> = ({ number, title, icon, children, status = 'pending' }) => (
-  <div className={`relative rounded-xl border p-6 transition-all ${
-    status === 'current'
-      ? 'border-violet-500/40 bg-violet-900/10 shadow-lg shadow-violet-500/5'
-      : status === 'done'
-      ? 'border-emerald-500/30 bg-emerald-900/5'
-      : 'border-slate-700/50 bg-slate-800/20'
-  }`}>
-    <div className="flex items-start gap-4">
-      <div className={`flex items-center justify-center w-10 h-10 rounded-lg shrink-0 ${
-        status === 'current'
-          ? 'bg-violet-600/20 border border-violet-500/30'
-          : status === 'done'
-          ? 'bg-emerald-600/20 border border-emerald-500/30'
-          : 'bg-slate-700/30 border border-slate-600/30'
-      }`}>
-        {status === 'done' ? <CheckCircle2 className="w-5 h-5 text-emerald-400" /> : icon}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <span className={`text-xs font-mono ${
-            status === 'current' ? 'text-violet-400' : status === 'done' ? 'text-emerald-400' : 'text-slate-500'
-          }`}>
-            Step {number}
-          </span>
+const StepCard: React.FC<StepCardProps> = ({ number, title, icon, children, color = 'emerald' }) => {
+  const colorMap: Record<string, { border: string; bg: string; text: string; iconBg: string }> = {
+    emerald: { border: 'border-emerald-500/30', bg: 'bg-emerald-900/10', text: 'text-emerald-300', iconBg: 'bg-emerald-600/20 border-emerald-500/30' },
+    violet: { border: 'border-violet-500/30', bg: 'bg-violet-900/10', text: 'text-violet-300', iconBg: 'bg-violet-600/20 border-violet-500/30' },
+    cyan: { border: 'border-cyan-500/30', bg: 'bg-cyan-900/10', text: 'text-cyan-300', iconBg: 'bg-cyan-600/20 border-cyan-500/30' },
+    amber: { border: 'border-amber-500/30', bg: 'bg-amber-900/10', text: 'text-amber-300', iconBg: 'bg-amber-600/20 border-amber-500/30' },
+    rose: { border: 'border-rose-500/30', bg: 'bg-rose-900/10', text: 'text-rose-300', iconBg: 'bg-rose-600/20 border-rose-500/30' },
+    blue: { border: 'border-blue-500/30', bg: 'bg-blue-900/10', text: 'text-blue-300', iconBg: 'bg-blue-600/20 border-blue-500/30' },
+  };
+  const c = colorMap[color] || colorMap.emerald;
+
+  return (
+    <div className={`relative rounded-xl border ${c.border} ${c.bg} p-6`}>
+      <div className="flex items-start gap-4">
+        <div className={`flex items-center justify-center w-10 h-10 rounded-lg shrink-0 border ${c.iconBg}`}>
+          {icon}
         </div>
-        <h3 className={`text-lg font-semibold mb-3 ${
-          status === 'current' ? 'text-violet-200' : status === 'done' ? 'text-emerald-200' : 'text-slate-200'
-        }`}>
-          {title}
-        </h3>
-        {children}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className={`text-xs font-mono ${c.text}`}>Шаг {number}</span>
+          </div>
+          <h3 className={`text-lg font-semibold mb-3 ${c.text}`}>{title}</h3>
+          {children}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
-// ─── Accordion ──────────────────────────────────────────────────────────────
+// ─── Аккордеон ──────────────────────────────────────────────────────────────
 interface AccordionProps {
   title: string;
   children: React.ReactNode;
@@ -152,15 +138,15 @@ const Accordion: React.FC<AccordionProps> = ({ title, children, defaultOpen = fa
         className="flex items-center justify-between w-full px-4 py-3 text-left text-sm font-medium text-slate-200 hover:bg-slate-700/20 transition-colors"
       >
         {title}
-        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform shrink-0 ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && <div className="px-4 pb-4">{children}</div>}
     </div>
   );
 };
 
-// ─── Typing Animation ───────────────────────────────────────────────────────
-const TypeWriter: React.FC<{ text: string; speed?: number; className?: string }> = ({ text, speed = 40, className = '' }) => {
+// ─── Анимация печати ────────────────────────────────────────────────────────
+const TypeWriter: React.FC<{ text: string; speed?: number }> = ({ text, speed = 35 }) => {
   const [displayed, setDisplayed] = useState('');
   const [done, setDone] = useState(false);
 
@@ -179,33 +165,33 @@ const TypeWriter: React.FC<{ text: string; speed?: number; className?: string }>
   }, [text, speed]);
 
   return (
-    <span className={className}>
+    <span>
       {displayed}
       {!done && <span className="animate-pulse text-emerald-400">▊</span>}
     </span>
   );
 };
 
-// ─── Main App ───────────────────────────────────────────────────────────────
-type InstallMethod = 'quick' | 'pip' | 'source' | 'docker';
+// ─── Табы ───────────────────────────────────────────────────────────────────
+type TabId = 'intro' | 'install' | 'config' | 'keys' | 'first-run' | 'faq';
 
+// ─── Главный компонент ──────────────────────────────────────────────────────
 const App: React.FC = () => {
-  const [method, setMethod] = useState<InstallMethod>('quick');
-  const [currentStep, setCurrentStep] = useState(0);
-  const [showConfig, setShowConfig] = useState(false);
-  const [activeTab, setActiveTab] = useState<'install' | 'config' | 'usage' | 'troubleshoot'>('install');
-  const termRef = useRef<HTMLDivElement>(null);
+  const [activeTab, setActiveTab] = useState<TabId>('intro');
+  const [installMethod, setInstallMethod] = useState<'quick' | 'pip' | 'source' | 'docker'>('quick');
 
-  const methods: { id: InstallMethod; label: string; icon: React.ReactNode; time: string }[] = [
-    { id: 'quick', label: 'Quick Install', icon: <Zap className="w-4 h-4" />, time: '~30 sec' },
-    { id: 'pip', label: 'pip install', icon: <Package className="w-4 h-4" />, time: '~2 min' },
-    { id: 'source', label: 'From Source', icon: <GitBranch className="w-4 h-4" />, time: '~5 min' },
-    { id: 'docker', label: 'Docker', icon: <Download className="w-4 h-4" />, time: '~3 min' },
+  const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
+    { id: 'intro', label: 'Что это?', icon: <Info className="w-4 h-4" /> },
+    { id: 'install', label: 'Установка', icon: <Download className="w-4 h-4" /> },
+    { id: 'keys', label: 'API ключи', icon: <Key className="w-4 h-4" /> },
+    { id: 'config', label: 'Настройка', icon: <Settings className="w-4 h-4" /> },
+    { id: 'first-run', label: 'Первый запуск', icon: <Rocket className="w-4 h-4" /> },
+    { id: 'faq', label: 'Проблемы', icon: <HelpCircle className="w-4 h-4" /> },
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
-      {/* ─── Hero ──────────────────────────────────────────────────────────── */}
+      {/* ─── Шапка ──────────────────────────────────────────────────────── */}
       <header className="relative overflow-hidden border-b border-slate-800/50">
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/5 via-transparent to-violet-600/5" />
         <div className="absolute inset-0">
@@ -220,13 +206,13 @@ const App: React.FC = () => {
             </div>
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
-                NexusAI — Installation Guide
+                NexusAI — Инструкция по установке
               </h1>
-              <p className="text-sm text-slate-400">Terminal AI Agent • Setup in minutes</p>
+              <p className="text-sm text-slate-400">Терминальный AI-агент • Настройка за 5 минут</p>
             </div>
           </div>
 
-          {/* Animated terminal preview */}
+          {/* Анимированный терминал */}
           <div className="mt-6 rounded-xl border border-slate-700/50 bg-[#0d1117] overflow-hidden shadow-2xl max-w-2xl">
             <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-800/60 border-b border-slate-700/40">
               <div className="flex gap-1.5">
@@ -234,38 +220,35 @@ const App: React.FC = () => {
                 <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
                 <div className="w-3 h-3 rounded-full bg-green-500/80" />
               </div>
-              <span className="text-xs text-slate-500 font-mono ml-2">nexus — install</span>
+              <span className="text-xs text-slate-500 font-mono ml-2">терминал — установка</span>
             </div>
-            <div ref={termRef} className="p-5 font-mono text-sm space-y-1.5 min-h-[140px]">
-              <TermLine prompt>
-                <TypeWriter text="curl -fsSL https://nexusai.dev/install.sh | bash" speed={35} />
-              </TermLine>
+            <div className="p-5 font-mono text-sm space-y-1.5 min-h-[160px]">
+              <div className="flex gap-2">
+                <span className="text-emerald-400 select-none">❯</span>
+                <TypeWriter text="curl -fsSL https://nexusai.dev/install.sh | bash" speed={30} />
+              </div>
               <div className="text-slate-500 text-xs mt-3 space-y-1">
-                <div>✓ Checking system requirements...</div>
-                <div>✓ Python 3.11+ detected</div>
-                <div>✓ Installing nexus-core...</div>
-                <div>✓ Setting up skills directory...</div>
-                <div className="text-emerald-400">✓ NexusAI installed successfully! Run <span className="text-white font-semibold">nexus</span> to start.</div>
+                <div>✓ Проверяю систему...</div>
+                <div>✓ Python 3.12 найден</div>
+                <div>✓ Устанавливаю nexus-core...</div>
+                <div>✓ Создаю конфигурацию в ~/.nexus/</div>
+                <div>✓ Загружаю базовые скиллы...</div>
+                <div className="text-emerald-400">✓ NexusAI установлен! Запустите <span className="text-white font-semibold">nexus</span> для начала работы.</div>
               </div>
             </div>
           </div>
         </div>
       </header>
 
-      {/* ─── Nav Tabs ──────────────────────────────────────────────────────── */}
+      {/* ─── Навигация ──────────────────────────────────────────────────── */}
       <nav className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-xl border-b border-slate-800/50">
         <div className="max-w-5xl mx-auto px-6">
-          <div className="flex gap-1 py-3">
-            {[
-              { id: 'install' as const, label: 'Install', icon: <Download className="w-4 h-4" /> },
-              { id: 'config' as const, label: 'Configure', icon: <Settings className="w-4 h-4" /> },
-              { id: 'usage' as const, label: 'Usage', icon: <Play className="w-4 h-4" /> },
-              { id: 'troubleshoot' as const, label: 'Troubleshoot', icon: <AlertCircle className="w-4 h-4" /> },
-            ].map(tab => (
+          <div className="flex gap-1 overflow-x-auto py-3">
+            {tabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
                   activeTab === tab.id
                     ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/30'
                     : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
@@ -279,185 +262,272 @@ const App: React.FC = () => {
         </div>
       </nav>
 
-      {/* ─── Content ───────────────────────────────────────────────────────── */}
+      {/* ─── Контент ────────────────────────────────────────────────────── */}
       <main className="max-w-5xl mx-auto px-6 py-10">
-        {activeTab === 'install' && (
+        {/* ═══ ВКЛАДКА: ЧТО ЭТО? ═══ */}
+        {activeTab === 'intro' && (
           <div className="space-y-8">
-            {/* System Requirements */}
-            <section>
-              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <Cpu className="w-5 h-5 text-amber-400" />
-                System Requirements
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="rounded-xl border border-violet-500/20 bg-violet-900/10 p-6">
+              <h2 className="text-2xl font-bold text-violet-200 mb-3">Что такое NexusAI?</h2>
+              <p className="text-slate-300 leading-relaxed">
+                <strong className="text-white">NexusAI</strong> — это терминальный AI-агент, который работает прямо в вашем терминале.
+                Он может читать и писать файлы, выполнять команды, искать по коду, запускать тесты — и всё это
+                управляется искусственным интеллектом. Вы просто описываете задачу на русском или английском языке,
+                а агент сам разбирается, какие инструменты использовать.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="rounded-xl border border-cyan-500/20 bg-cyan-900/10 p-5">
+                <div className="text-cyan-400 mb-2"><Globe className="w-5 h-5" /></div>
+                <h3 className="font-semibold text-cyan-200 mb-1">Любая модель</h3>
+                <p className="text-sm text-slate-400">Работает с Claude, GPT-4, Gemini, локальными моделями через Ollama. Переключайте одной командой.</p>
+              </div>
+              <div className="rounded-xl border border-violet-500/20 bg-violet-900/10 p-5">
+                <div className="text-violet-400 mb-2"><Layers className="w-5 h-5" /></div>
+                <h3 className="font-semibold text-violet-200 mb-1">Модульные скиллы</h3>
+                <p className="text-sm text-slate-400">Инструменты загружаются из YAML-файлов. Можно добавлять свои или скачивать готовые наборы.</p>
+              </div>
+              <div className="rounded-xl border border-rose-500/20 bg-rose-900/10 p-5">
+                <div className="text-rose-400 mb-2"><Shield className="w-5 h-5" /></div>
+                <h3 className="font-semibold text-rose-200 mb-1">Безопасность</h3>
+                <p className="text-sm text-slate-400">Песочница для команд, whitelist для путей, запрос подтверждения перед опасными операциями.</p>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-700/50 bg-slate-800/20 p-6">
+              <h3 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                <Lightbulb className="w-5 h-5 text-amber-400" />
+                Как это работает? Простыми словами
+              </h3>
+              <div className="space-y-4">
                 {[
-                  { label: 'Python', value: '3.11+', ok: true },
-                  { label: 'OS', value: 'Linux / macOS', ok: true },
-                  { label: 'RAM', value: '4 GB min', ok: true },
-                  { label: 'Disk', value: '~500 MB', ok: true },
-                ].map(req => (
-                  <div key={req.label} className="rounded-lg border border-slate-700/50 bg-slate-800/30 p-3 flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <div>
-                      <div className="text-xs text-slate-500">{req.label}</div>
-                      <div className="text-sm font-medium text-slate-200">{req.value}</div>
+                  { step: '1', text: 'Вы пишете задачу в терминале, например: "Добавь обработку ошибок в API"', emoji: '💬' },
+                  { step: '2', text: 'Агент анализирует ваш проект — читает файлы, ищет нужные места', emoji: '🔍' },
+                  { step: '3', text: 'Думает, какие инструменты использовать (чтение файлов, поиск, запись)', emoji: '🧠' },
+                  { step: '4', text: 'Показывает вам изменения (diff) и спрашивает подтверждение', emoji: '👀' },
+                  { step: '5', text: 'После вашего "ОК" — применяет изменения', emoji: '✅' },
+                ].map(s => (
+                  <div key={s.step} className="flex items-start gap-3">
+                    <div className="flex items-center justify-center w-7 h-7 rounded-full bg-slate-700/50 text-sm font-bold text-slate-300 shrink-0">
+                      {s.step}
                     </div>
+                    <p className="text-sm text-slate-300 pt-0.5">
+                      <span className="mr-2">{s.emoji}</span>{s.text}
+                    </p>
                   </div>
                 ))}
               </div>
-            </section>
+            </div>
 
-            {/* Install Method Selector */}
-            <section>
+            <div className="flex justify-center">
+              <button
+                onClick={() => setActiveTab('install')}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium transition-colors shadow-lg shadow-emerald-500/20"
+              >
+                Понятно, давай устанавливать!
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ═══ ВКЛАДКА: УСТАНОВКА ═══ */}
+        {activeTab === 'install' && (
+          <div className="space-y-8">
+            {/* Требования */}
+            <div>
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <Cpu className="w-5 h-5 text-amber-400" />
+                Что нужно перед установкой
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[
+                  { label: 'Python', value: '3.11 или новее', hint: 'Проверь: python3 --version' },
+                  { label: 'ОС', value: 'Linux или macOS', hint: 'Windows через WSL2' },
+                  { label: 'Память', value: '4 ГБ минимум', hint: 'Для локальных моделей — 16+' },
+                  { label: 'Диск', value: '~500 МБ', hint: 'С RAG и моделями больше' },
+                ].map(req => (
+                  <div key={req.label} className="rounded-lg border border-slate-700/50 bg-slate-800/30 p-3">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      <span className="text-xs text-slate-500">{req.label}</span>
+                    </div>
+                    <div className="text-sm font-medium text-slate-200">{req.value}</div>
+                    <div className="text-xs text-slate-500 mt-0.5">{req.hint}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Выбор метода */}
+            <div>
               <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                 <Download className="w-5 h-5 text-emerald-400" />
-                Choose Install Method
+                Выбери способ установки
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                {methods.map(m => (
+                {[
+                  { id: 'quick' as const, label: 'Быстрая', icon: <Zap className="w-4 h-4" />, time: '30 сек', desc: 'Одной командой' },
+                  { id: 'pip' as const, label: 'Через pip', icon: <Package className="w-4 h-4" />, time: '2 мин', desc: 'Стандартный способ' },
+                  { id: 'source' as const, label: 'Из исходников', icon: <GitBranch className="w-4 h-4" />, time: '5 мин', desc: 'Для разработчиков' },
+                  { id: 'docker' as const, label: 'Docker', icon: <Download className="w-4 h-4" />, time: '3 мин', desc: 'В контейнере' },
+                ].map(m => (
                   <button
                     key={m.id}
-                    onClick={() => setMethod(m.id)}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
-                      method === m.id
+                    onClick={() => setInstallMethod(m.id)}
+                    className={`flex flex-col items-center gap-1.5 p-4 rounded-xl border transition-all ${
+                      installMethod === m.id
                         ? 'border-emerald-500/40 bg-emerald-900/15 shadow-lg shadow-emerald-500/5'
                         : 'border-slate-700/50 bg-slate-800/20 hover:border-slate-600/50'
                     }`}
                   >
-                    <span className={method === m.id ? 'text-emerald-400' : 'text-slate-400'}>
-                      {m.icon}
-                    </span>
-                    <span className={`text-sm font-medium ${method === m.id ? 'text-emerald-300' : 'text-slate-300'}`}>
-                      {m.label}
-                    </span>
+                    <span className={installMethod === m.id ? 'text-emerald-400' : 'text-slate-400'}>{m.icon}</span>
+                    <span className={`text-sm font-medium ${installMethod === m.id ? 'text-emerald-300' : 'text-slate-300'}`}>{m.label}</span>
                     <span className="text-xs text-slate-500">{m.time}</span>
+                    <span className="text-xs text-slate-600">{m.desc}</span>
                   </button>
                 ))}
               </div>
 
-              {/* Install Commands */}
+              {/* Команды для выбранного метода */}
               <div className="space-y-4">
-                {method === 'quick' && (
+                {installMethod === 'quick' && (
                   <>
+                    <div className="rounded-lg border border-emerald-500/20 bg-emerald-900/10 p-4 mb-4">
+                      <p className="text-sm text-emerald-200">
+                        <strong>💡 Самый простой способ</strong> — одна команда делает всё автоматически:
+                        проверяет систему, устанавливает пакет, создаёт конфигурацию.
+                      </p>
+                    </div>
                     <CmdBlock
-                      title="Terminal — Quick Install"
-                      comment="One-liner: downloads, installs, and configures NexusAI"
-                      commands={[
-                        'curl -fsSL https://nexusai.dev/install.sh | bash',
-                      ]}
+                      title="Терминал"
+                      comment="Скопируй и вставь в терминал"
+                      commands={['curl -fsSL https://nexusai.dev/install.sh | bash']}
                     />
-                    <div className="rounded-lg border border-blue-500/20 bg-blue-900/10 p-4 flex gap-3">
-                      <Info className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
-                      <div className="text-sm text-slate-300">
-                        <p>Скрипт автоматически:</p>
-                        <ul className="mt-1 space-y-1 text-slate-400">
-                          <li>• Проверит Python 3.11+ и pip</li>
-                          <li>• Установит <code className="text-blue-300 bg-slate-800 px-1 rounded">nexus-core</code> через pip</li>
-                          <li>• Создаст <code className="text-blue-300 bg-slate-800 px-1 rounded">~/.nexus/</code> с дефолтным конфигом</li>
-                          <li>• Добавит <code className="text-blue-300 bg-slate-800 px-1 rounded">nexus</code> в PATH</li>
-                        </ul>
-                      </div>
+                    <div className="text-sm text-slate-400 mt-3">
+                      <p className="mb-2">Что делает этот скрипт:</p>
+                      <ul className="space-y-1 text-slate-500">
+                        <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" /> Проверяет, что Python 3.11+ установлен</li>
+                        <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" /> Устанавливает <code className="text-emerald-300 bg-slate-800 px-1 rounded">nexus-core</code> через pip</li>
+                        <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" /> Создаёт папку <code className="text-emerald-300 bg-slate-800 px-1 rounded">~/.nexus/</code> с настройками</li>
+                        <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" /> Добавляет команду <code className="text-emerald-300 bg-slate-800 px-1 rounded">nexus</code> в PATH</li>
+                      </ul>
                     </div>
                   </>
                 )}
 
-                {method === 'pip' && (
+                {installMethod === 'pip' && (
                   <>
+                    <div className="rounded-lg border border-blue-500/20 bg-blue-900/10 p-4 mb-4">
+                      <p className="text-sm text-blue-200">
+                        <strong>💡 Стандартный способ</strong> — установка через Python-менеджер пакетов pip.
+                        Рекомендуется использовать виртуальное окружение.
+                      </p>
+                    </div>
                     <CmdBlock
-                      title="Terminal — pip install"
-                      comment="Install from PyPI"
+                      title="Терминал"
+                      comment="Шаг 1: Создаём виртуальное окружение (чтобы не засорять систему)"
                       commands={[
-                        '# Create virtual environment (recommended)',
                         'python3 -m venv ~/.nexus/venv',
                         'source ~/.nexus/venv/bin/activate',
-                        '',
-                        '# Install NexusAI',
-                        'pip install nexus-core',
-                        '',
-                        '# Or with all extras (RAG, tree-sitter, all providers)',
-                        'pip install "nexus-core[full]"',
-                        '',
-                        '# Initialize config',
-                        'nexus init',
                       ]}
                     />
-                    <div className="rounded-lg border border-amber-500/20 bg-amber-900/10 p-4 flex gap-3">
-                      <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-                      <div className="text-sm text-slate-300">
-                        <p className="text-amber-300 font-medium mb-1">Extras packages:</p>
-                        <ul className="text-slate-400 space-y-0.5">
-                          <li><code className="text-amber-200 bg-slate-800 px-1 rounded">nexus-core[rag]</code> — tree-sitter + ChromaDB</li>
-                          <li><code className="text-amber-200 bg-slate-800 px-1 rounded">nexus-core[tui]</code> — Textual + Rich</li>
-                          <li><code className="text-amber-200 bg-slate-800 px-1 rounded">nexus-core[all-providers]</code> — all LLM SDKs</li>
-                          <li><code className="text-amber-200 bg-slate-800 px-1 rounded">nexus-core[full]</code> — everything</li>
-                        </ul>
-                      </div>
+                    <CmdBlock
+                      title="Терминал"
+                      comment="Шаг 2: Устанавливаем NexusAI"
+                      commands={[
+                        '# Базовая установка',
+                        'pip install nexus-core',
+                        '',
+                        '# Или полная версия (со всеми фичами)',
+                        'pip install "nexus-core[full]"',
+                      ]}
+                    />
+                    <CmdBlock
+                      title="Терминал"
+                      comment="Шаг 3: Инициализация — создаёт конфиг и папку скиллов"
+                      commands={['nexus init']}
+                    />
+                    <div className="rounded-lg border border-amber-500/20 bg-amber-900/10 p-4">
+                      <p className="text-sm text-amber-200">
+                        <strong>📦 Что входит в [full]:</strong>
+                      </p>
+                      <ul className="text-xs text-slate-400 mt-2 space-y-1">
+                        <li>• <code className="text-amber-200 bg-slate-800 px-1 rounded">[rag]</code> — tree-sitter + ChromaDB для поиска по коду</li>
+                        <li>• <code className="text-amber-200 bg-slate-800 px-1 rounded">[tui]</code> — красивый интерфейс в терминале</li>
+                        <li>• <code className="text-amber-200 bg-slate-800 px-1 rounded">[all-providers]</code> — поддержка всех LLM-провайдеров</li>
+                      </ul>
                     </div>
                   </>
                 )}
 
-                {method === 'source' && (
+                {installMethod === 'source' && (
                   <>
+                    <div className="rounded-lg border border-violet-500/20 bg-violet-900/10 p-4 mb-4">
+                      <p className="text-sm text-violet-200">
+                        <strong>💡 Для разработчиков</strong> — клонируешь репозиторий и можешь менять код.
+                        Удобно если хочешь добавить свои скиллы или модифицировать агента.
+                      </p>
+                    </div>
                     <CmdBlock
-                      title="Terminal — From Source"
-                      comment="Clone repo and install in development mode"
+                      title="Терминал"
                       commands={[
-                        '# Clone repository',
+                        '# Клонируем репозиторий',
                         'git clone https://github.com/nexusai/nexus-core.git',
                         'cd nexus-core',
                         '',
-                        '# Create & activate venv',
+                        '# Создаём виртуальное окружение',
                         'python3 -m venv .venv',
                         'source .venv/bin/activate',
                         '',
-                        '# Install in editable mode with all extras',
+                        '# Устанавливаем в режиме разработки',
                         'pip install -e ".[full]"',
                         '',
-                        '# Run tests',
+                        '# Проверяем что тесты проходят',
                         'pytest tests/ -v',
                         '',
-                        '# Initialize',
+                        '# Инициализация',
                         'nexus init',
                       ]}
                     />
                   </>
                 )}
 
-                {method === 'docker' && (
+                {installMethod === 'docker' && (
                   <>
+                    <div className="rounded-lg border border-cyan-500/20 bg-cyan-900/10 p-4 mb-4">
+                      <p className="text-sm text-cyan-200">
+                        <strong>💡 Изолированный запуск</strong> — всё работает в контейнере, не засоряет систему.
+                        Твой проект монтируется внутрь контейнера.
+                      </p>
+                    </div>
                     <CmdBlock
-                      title="Terminal — Docker"
-                      comment="Run in isolated container"
+                      title="Терминал"
                       commands={[
-                        '# Pull image',
+                        '# Скачиваем образ',
                         'docker pull nexusai/nexus:latest',
                         '',
-                        '# Run with your project mounted',
+                        '# Запускаем с твоим проектом',
                         'docker run -it \\',
                         '  -v $(pwd):/workspace \\',
                         '  -v ~/.nexus:/root/.nexus \\',
                         '  -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY \\',
-                        '  -e OPENAI_API_KEY=$OPENAI_API_KEY \\',
                         '  nexusai/nexus:latest',
-                        '',
-                        '# Or use docker-compose',
-                        'curl -O https://nexusai.dev/docker-compose.yml',
-                        'docker compose up -d',
                       ]}
                     />
                   </>
                 )}
               </div>
-            </section>
+            </div>
 
-            {/* Verify Installation */}
-            <section>
-              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                Verify Installation
-              </h2>
+            {/* Проверка */}
+            <StepCard number={0} title="Проверь что всё установилось" icon={<CheckCircle2 className="w-5 h-5 text-emerald-400" />} color="emerald">
+              <p className="text-sm text-slate-400 mb-3">
+                Выполни эти команды — если всё хорошо, увидишь версию и статус всех компонентов:
+              </p>
               <CmdBlock
-                title="Terminal"
+                title="Терминал"
                 commands={[
                   'nexus --version',
                   '# → NexusAI Core v1.0.0',
@@ -466,226 +536,336 @@ const App: React.FC = () => {
                   '# → ✓ Python 3.12.1',
                   '# → ✓ LiteLLM 1.24.0',
                   '# → ✓ Tree-sitter OK',
-                  '# → ✓ ChromaDB OK',
-                  '# → ✓ Config: ~/.nexus/config.yaml',
-                  '# → ✓ 8 skills loaded',
-                  '# → All checks passed ✓',
+                  '# → ✓ Конфиг: ~/.nexus/config.yaml',
+                  '# → ✓ 8 скиллов загружено',
+                  '# → Все проверки пройдены ✓',
                 ]}
               />
-            </section>
+            </StepCard>
           </div>
         )}
 
-        {activeTab === 'config' && (
+        {/* ═══ ВКЛАДКА: API КЛЮЧИ ═══ */}
+        {activeTab === 'keys' && (
           <div className="space-y-8">
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <Settings className="w-5 h-5 text-violet-400" />
-              Configuration
-            </h2>
-
-            {/* Step 1: API Keys */}
-            <StepCard number={1} title="Set API Keys" icon={<Key className="w-5 h-5 text-amber-400" />} status="current">
-              <p className="text-sm text-slate-400 mb-4">
-                Добавьте ключи API в <code className="text-violet-300 bg-slate-800 px-1.5 rounded">~/.nexus/.env</code> или экспортируйте в shell:
+            <div className="rounded-xl border border-amber-500/20 bg-amber-900/10 p-6">
+              <h2 className="text-xl font-bold text-amber-200 mb-2 flex items-center gap-2">
+                <Key className="w-5 h-5" />
+                Зачем нужны API ключи?
+              </h2>
+              <p className="text-slate-300 text-sm leading-relaxed">
+                API ключ — это как пароль для доступа к AI-моделям. Когда NexusAI отправляет запрос к Claude или GPT-4,
+                он использует этот ключ для авторизации. Ключи дают провайдеры (Anthropic, OpenAI и т.д.).
+                <strong className="text-amber-200"> Без хотя бы одного ключа агент не сможет работать.</strong>
               </p>
-              <CmdBlock
-                title="~/.nexus/.env"
-                commands={[
-                  '# Required — at least one provider',
-                  'ANTHROPIC_API_KEY=sk-ant-...',
-                  'OPENAI_API_KEY=sk-...',
-                  '',
-                  '# Optional',
-                  'OPENROUTER_API_KEY=sk-or-...',
-                  '',
-                  '# Local models (no key needed)',
-                  '# Just run Ollama: ollama serve',
-                ]}
-              />
-              <div className="mt-3 text-xs text-slate-500">
-                💡 Ключи из .env подхватываются автоматически. Также можно использовать переменные окружения.
+            </div>
+
+            <StepCard number={1} title="Получи API ключ" icon={<Key className="w-5 h-5 text-amber-400" />} color="amber">
+              <p className="text-sm text-slate-400 mb-4">
+                Зарегистрируйся на сайте провайдера и создай ключ. Вот самые популярные:
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="rounded-lg border border-violet-500/20 bg-violet-900/10 p-4 relative">
+                  <div className="absolute -top-2 right-3 px-2 py-0.5 text-xs bg-violet-600 text-white rounded-full">
+                    Рекомендуется
+                  </div>
+                  <h4 className="font-semibold text-violet-200 mb-1">Anthropic (Claude)</h4>
+                  <p className="text-xs text-slate-400 mb-1">Модель: Claude Sonnet 4</p>
+                  <p className="text-xs text-slate-500 mb-2">$3 / $15 за 1M токенов</p>
+                  <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer"
+                    className="text-xs text-blue-400 hover:underline inline-flex items-center gap-1">
+                    console.anthropic.com <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+                <div className="rounded-lg border border-emerald-500/20 bg-emerald-900/10 p-4">
+                  <h4 className="font-semibold text-emerald-200 mb-1">OpenAI (GPT)</h4>
+                  <p className="text-xs text-slate-400 mb-1">Модель: GPT-4o</p>
+                  <p className="text-xs text-slate-500 mb-2">$2.5 / $10 за 1M токенов</p>
+                  <a href="https://platform.openai.com" target="_blank" rel="noopener noreferrer"
+                    className="text-xs text-blue-400 hover:underline inline-flex items-center gap-1">
+                    platform.openai.com <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+                <div className="rounded-lg border border-cyan-500/20 bg-cyan-900/10 p-4">
+                  <h4 className="font-semibold text-cyan-200 mb-1">OpenRouter</h4>
+                  <p className="text-xs text-slate-400 mb-1">Модель: Любая модель</p>
+                  <p className="text-xs text-slate-500 mb-2">Зависит от модели</p>
+                  <a href="https://openrouter.ai" target="_blank" rel="noopener noreferrer"
+                    className="text-xs text-blue-400 hover:underline inline-flex items-center gap-1">
+                    openrouter.ai <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              </div>
+              <div className="mt-4 rounded-lg border border-slate-700/50 bg-slate-800/30 p-3">
+                <p className="text-xs text-slate-400">
+                  <strong className="text-slate-300">🏠 Локальные модели (бесплатно):</strong> Если у тебя мощная видеокарта (16GB+ VRAM),
+                  можешь использовать Ollama для запуска моделей локально. Ключ не нужен!
+                </p>
               </div>
             </StepCard>
 
-            {/* Step 2: Choose Model */}
-            <StepCard number={2} title="Choose Default Model" icon={<Globe className="w-5 h-5 text-cyan-400" />} status="pending">
-              <p className="text-sm text-slate-400 mb-4">
-                Отредактируйте <code className="text-violet-300 bg-slate-800 px-1.5 rounded">~/.nexus/config.yaml</code>:
+            <StepCard number={2} title="Сохрани ключ в NexusAI" icon={<Settings className="w-5 h-5 text-violet-400" />} color="violet">
+              <p className="text-sm text-slate-400 mb-3">
+                Создай файл <code className="text-violet-300 bg-slate-800 px-1.5 rounded">~/.nexus/.env</code> и добавь туда ключи:
               </p>
               <CmdBlock
-                title="~/.nexus/config.yaml"
+                title="Терминал"
+                comment="Создаём файл с ключами"
                 commands={[
-                  'profiles:',
-                  '  default:',
-                  '    model: "claude-sonnet-4-20250514"',
-                  '    provider: "anthropic"',
-                  '    max_tokens: 8192',
-                  '    temperature: 0.3',
+                  '# Открываем файл в редакторе',
+                  'nano ~/.nexus/.env',
                   '',
-                  '  fast:',
-                  '    model: "gpt-4o-mini"',
-                  '    provider: "openai"',
-                  '',
-                  '  local:',
-                  '    model: "codellama:34b"',
-                  '    provider: "ollama"',
-                  '    base_url: "http://localhost:11434"',
+                  '# Или одной командой (замени на свой ключ):',
+                  'echo "ANTHROPIC_API_KEY=sk-ant-твой_ключ_сюда" >> ~/.nexus/.env',
                 ]}
               />
-              <p className="mt-3 text-sm text-slate-400">
-                Переключайте на лету: <code className="text-emerald-300 bg-slate-800 px-1.5 rounded">nexus --profile fast</code>
-              </p>
+              <div className="mt-3 rounded-lg border border-slate-700/50 bg-slate-800/30 p-4 font-mono text-sm">
+                <div className="text-slate-500 mb-2"># Содержимое ~/.nexus/.env:</div>
+                <div className="text-slate-300">ANTHROPIC_API_KEY=sk-ant-api03-xxxxxxxxxxxx</div>
+                <div className="text-slate-300">OPENAI_API_KEY=sk-xxxxxxxxxxxx</div>
+                <div className="text-slate-500 mt-2"># Можно добавить несколько — NexusAI сам выберет</div>
+              </div>
+              <div className="mt-3 rounded-lg border border-rose-500/20 bg-rose-900/10 p-3">
+                <p className="text-xs text-rose-200">
+                  <strong>⚠️ Важно:</strong> Никогда не коммить файл .env в git! Он уже добавлен в .gitignore.
+                  Не публикуй свои ключи в интернете.
+                </p>
+              </div>
             </StepCard>
 
-            {/* Step 3: Skills */}
-            <StepCard number={3} title="Install Skills (Optional)" icon={<Package className="w-5 h-5 text-emerald-400" />} status="pending">
-              <p className="text-sm text-slate-400 mb-4">
-                Установите дополнительные скиллы из репозитория или создайте свои:
-              </p>
+            <StepCard number={3} title="Проверь что ключ работает" icon={<CheckCircle2 className="w-5 h-5 text-emerald-400" />} color="emerald">
               <CmdBlock
-                title="Terminal"
+                title="Терминал"
                 commands={[
-                  '# Install community skill pack',
-                  'nexus skills install nexusai/skill-pack-devops',
-                  'nexus skills install nexusai/skill-pack-testing',
-                  '',
-                  '# List installed skills',
-                  'nexus skills list',
-                  '',
-                  '# Create custom skill',
-                  'nexus skills new my-skill',
-                  '# → Creates ~/.nexus/skills/my-skill.yaml',
-                ]}
-              />
-            </StepCard>
-
-            {/* Step 4: Security */}
-            <StepCard number={4} title="Configure Security" icon={<Shield className="w-5 h-5 text-rose-400" />} status="pending">
-              <p className="text-sm text-slate-400 mb-4">
-                Настройте sandbox в конфиге — что агенту разрешено и запрещено:
-              </p>
-              <CmdBlock
-                title="~/.nexus/config.yaml → security section"
-                commands={[
-                  'security:',
-                  '  sandbox:',
-                  '    enabled: true',
-                  '    allowed_paths:',
-                  '      - "."                    # current project',
-                  '      - "/tmp/nexus-*"',
-                  '    blocked_paths:',
-                  '      - "/etc/**"',
-                  '      - "~/.ssh/**"',
-                  '      - "~/.aws/**"',
-                  '  shell:',
-                  '    allowed_commands:',
-                  '      - "ls" - "cat" - "grep" - "git"',
-                  '      - "npm" - "python" - "node"',
-                  '    require_approval:',
-                  '      - "rm" - "mv" - "sudo"',
+                  'nexus doctor',
+                  '# → ✓ ANTHROPIC_API_KEY установлен',
+                  '# → ✓ Подключение к API работает',
+                  '# → ✓ Модель claude-sonnet-4-20250514 доступна',
                 ]}
               />
             </StepCard>
           </div>
         )}
 
-        {activeTab === 'usage' && (
+        {/* ═══ ВКЛАДКА: НАСТРОЙКА ═══ */}
+        {activeTab === 'config' && (
           <div className="space-y-8">
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <Play className="w-5 h-5 text-emerald-400" />
-              Usage Examples
-            </h2>
+            <div className="rounded-xl border border-violet-500/20 bg-violet-900/10 p-6">
+              <h2 className="text-xl font-bold text-violet-200 mb-2 flex items-center gap-2">
+                <Settings className="w-5 h-5" />
+                Настройка NexusAI
+              </h2>
+              <p className="text-slate-300 text-sm">
+                Главный файл настроек — <code className="text-violet-300 bg-slate-800 px-1.5 rounded">~/.nexus/config.yaml</code>.
+                Тут указывается какая модель по умолчанию, какие скиллы загружать, настройки безопасности и т.д.
+              </p>
+            </div>
 
-            {/* Interactive mode */}
-            <section>
-              <h3 className="text-lg font-semibold text-slate-200 mb-3 flex items-center gap-2">
-                <Terminal className="w-4 h-4 text-emerald-400" />
-                Interactive Mode
-              </h3>
+            <StepCard number={1} title="Выбери модель по умолчанию" icon={<Globe className="w-5 h-5 text-cyan-400" />} color="cyan">
+              <p className="text-sm text-slate-400 mb-3">
+                Открой конфиг в редакторе и укажи какую модель использовать:
+              </p>
               <CmdBlock
-                title="Terminal"
+                title="Терминал"
                 commands={[
-                  '# Start interactive session',
-                  'nexus',
+                  '# Открываем конфиг в редакторе',
+                  'nexus config edit',
                   '',
-                  '# With specific profile',
-                  'nexus --profile fast',
-                  '',
-                  '# In specific directory',
-                  'nexus --cwd /path/to/project',
+                  '# Или напрямую:',
+                  'nano ~/.nexus/config.yaml',
                 ]}
               />
+              <div className="mt-3 rounded-lg border border-slate-700/50 bg-slate-800/30 p-4 font-mono text-sm">
+                <div className="text-slate-500 mb-2"># Найди секцию profiles и измени:</div>
+                <div><span className="text-violet-400">profiles:</span></div>
+                <div><span className="text-cyan-400">  default:</span></div>
+                <div className="text-slate-300">    model: <span className="text-emerald-300">"claude-sonnet-4-20250514"</span></div>
+                <div className="text-slate-300">    provider: <span className="text-emerald-300">"anthropic"</span></div>
+                <div className="text-slate-300">    max_tokens: <span className="text-amber-300">8192</span></div>
+              </div>
+              <div className="mt-3 text-sm text-slate-400">
+                <p className="mb-2">Можно создать несколько профилей и переключаться между ними:</p>
+                <CmdBlock
+                  title="Терминал"
+                  commands={[
+                    '# Использовать быстрый профиль (дешевле)',
+                    'nexus --profile fast',
+                    '',
+                    '# Использовать локальную модель (бесплатно)',
+                    'nexus --profile local',
+                  ]}
+                />
+              </div>
+            </StepCard>
 
-              <div className="mt-4 rounded-xl border border-slate-700/50 bg-[#0d1117] overflow-hidden">
+            <StepCard number={2} title="Настрой безопасность" icon={<Shield className="w-5 h-5 text-rose-400" />} color="rose">
+              <p className="text-sm text-slate-400 mb-3">
+                Укажи, что агенту разрешено делать, а что нет. Это важно — защищает твою систему:
+              </p>
+              <div className="rounded-lg border border-slate-700/50 bg-slate-800/30 p-4 font-mono text-xs leading-relaxed">
+                <div className="text-slate-500"># В ~/.nexus/config.yaml найди секцию security:</div>
+                <div className="text-rose-400">security:</div>
+                <div className="text-rose-400">  sandbox:</div>
+                <div className="text-slate-300">    enabled: <span className="text-emerald-300">true</span></div>
+                <div className="text-slate-300">    allowed_paths:</div>
+                <div className="text-emerald-300">      - "."              <span className="text-slate-500"># текущая папка проекта</span></div>
+                <div className="text-emerald-300">      - "/tmp/nexus-*"   <span className="text-slate-500"># временные файлы</span></div>
+                <div className="text-slate-300">    blocked_paths:</div>
+                <div className="text-rose-300">      - "/etc/**"          <span className="text-slate-500"># системные файлы</span></div>
+                <div className="text-rose-300">      - "~/.ssh/**"        <span className="text-slate-500"># SSH ключи</span></div>
+                <div className="text-rose-300">      - "~/.aws/**"        <span className="text-slate-500"># AWS креды</span></div>
+                <div className="text-slate-300">    require_approval:</div>
+                <div className="text-amber-300">      - "rm"             <span className="text-slate-500"># спросит перед удалением</span></div>
+                <div className="text-amber-300">      - "mv"             <span className="text-slate-500"># спросит перед перемещением</span></div>
+              </div>
+              <div className="mt-3 rounded-lg border border-blue-500/20 bg-blue-900/10 p-3">
+                <p className="text-xs text-blue-200">
+                  <strong>💡 Совет:</strong> Для начала оставь настройки по умолчанию — они достаточно строгие.
+                  Ослабляй только если агенту нужно работать с дополнительными папками.
+                </p>
+              </div>
+            </StepCard>
+
+            <StepCard number={3} title="Установи скиллы (доп. возможности)" icon={<Package className="w-5 h-5 text-emerald-400" />} color="emerald">
+              <p className="text-sm text-slate-400 mb-3">
+                Скиллы — это дополнительные инструменты для агента. Базовые уже встроены (чтение файлов, поиск, команды),
+                но можно добавить специализированные:
+              </p>
+              <CmdBlock
+                title="Терминал"
+                commands={[
+                  '# Посмотреть какие скиллы уже есть',
+                  'nexus skills list',
+                  '',
+                  '# Установить набор для DevOps',
+                  'nexus skills install nexusai/skill-pack-devops',
+                  '',
+                  '# Установить набор для тестирования',
+                  'nexus skills install nexusai/skill-pack-testing',
+                  '',
+                  '# Создать свой скилл',
+                  'nexus skills new мой-скилл',
+                ]}
+              />
+            </StepCard>
+          </div>
+        )}
+
+        {/* ═══ ВКЛАДКА: ПЕРВЫЙ ЗАПУСК ═══ */}
+        {activeTab === 'first-run' && (
+          <div className="space-y-8">
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-900/10 p-6">
+              <h2 className="text-xl font-bold text-emerald-200 mb-2 flex items-center gap-2">
+                <Rocket className="w-5 h-5" />
+                Первый запуск
+              </h2>
+              <p className="text-slate-300 text-sm">
+                Всё готово! Давай запустим агента и попробуем что-нибудь сделать.
+              </p>
+            </div>
+
+            <StepCard number={1} title="Перейди в папку проекта" icon={<FolderOpen className="w-5 h-5 text-amber-400" />} color="amber">
+              <CmdBlock
+                title="Терминал"
+                comment="NexusAI работает с текущей папкой — перейди в свой проект"
+                commands={[
+                  'cd ~/my-project',
+                  '',
+                  '# Или создай тестовую папку:',
+                  'mkdir ~/test-nexus && cd ~/test-nexus',
+                ]}
+              />
+            </StepCard>
+
+            <StepCard number={2} title="Запусти NexusAI" icon={<Play className="w-5 h-5 text-emerald-400" />} color="emerald">
+              <CmdBlock
+                title="Терминал"
+                commands={['nexus']}
+              />
+              <p className="text-sm text-slate-400 mt-3">
+                Ты увидишь приветствие агента с информацией о модели и загруженных инструментах.
+              </p>
+            </StepCard>
+
+            <StepCard number={3} title="Попробуй задачу" icon={<MousePointer className="w-5 h-5 text-violet-400" />} color="violet">
+              <p className="text-sm text-slate-400 mb-3">
+                Вот несколько примеров что можно попросить:
+              </p>
+              <div className="rounded-xl border border-slate-700/50 bg-[#0d1117] overflow-hidden">
                 <div className="flex items-center gap-2 px-4 py-2 bg-slate-800/60 border-b border-slate-700/40">
                   <div className="flex gap-1.5">
                     <div className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
                     <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/70" />
                     <div className="w-2.5 h-2.5 rounded-full bg-green-500/70" />
                   </div>
-                  <span className="text-xs text-slate-500 font-mono ml-2">nexus session</span>
+                  <span className="text-xs text-slate-500 font-mono ml-2">сессия nexus</span>
                 </div>
-                <div className="p-4 font-mono text-sm space-y-2">
-                  <div className="text-slate-500">🚀 NexusAI v1.0.0 | Model: claude-sonnet-4-20250514 | 8 tools</div>
-                  <div className="text-slate-500">────────────────────────────────────────────────────</div>
+                <div className="p-4 font-mono text-sm space-y-3">
+                  <div className="text-slate-500">🚀 NexusAI v1.0.0 | Модель: claude-sonnet | 8 инструментов</div>
+                  <div className="text-slate-500">────────────────────────────────────────────────</div>
+
                   <div className="flex gap-2">
-                    <span className="text-cyan-400">you ›</span>
-                    <span className="text-white">Add error handling to all API endpoints in src/api/</span>
+                    <span className="text-cyan-400 shrink-0">ты ›</span>
+                    <span className="text-white">Покажи структуру этого проекта и объясни что он делает</span>
                   </div>
-                  <div className="text-violet-400 mt-2">🧠 Analyzing... selected 5 tools</div>
-                  <div className="text-slate-400">📂 read_file("src/api/routes.py")</div>
-                  <div className="text-slate-400">📂 read_file("src/api/handlers.py")</div>
-                  <div className="text-amber-400">🔧 search_code("async def.*handler")</div>
-                  <div className="text-emerald-400 mt-1">✏️  Proposed changes to 3 files:</div>
-                  <div className="text-slate-500 ml-2">  src/api/routes.py     +12 -3</div>
-                  <div className="text-slate-500 ml-2">  src/api/handlers.py   +28 -5</div>
-                  <div className="text-slate-500 ml-2">  src/api/middleware.py  +8  -0</div>
-                  <div className="text-amber-400 mt-2">⚡ [a]ccept all | [r]eview diff | [e]dit | [s]kip</div>
+
+                  <div className="text-violet-400">🧠 Анализирую... выбрал 3 инструмента</div>
+                  <div className="text-slate-400">📂 list_directory(".")</div>
+                  <div className="text-slate-400">📂 read_file("README.md")</div>
+                  <div className="text-slate-400">📂 read_file("package.json")</div>
+
+                  <div className="text-slate-200 mt-2">
+                    Это Node.js приложение для управления задачами. Структура:
+                  </div>
+                  <div className="text-slate-400 text-xs ml-2">
+                    <div>├── src/</div>
+                    <div>│   ├── app.ts — главный файл</div>
+                    <div>│   ├── routes/ — API endpoints</div>
+                    <div>│   └── models/ — модели данных</div>
+                    <div>├── tests/ — тесты</div>
+                    <div>└── package.json — зависимости</div>
+                  </div>
+
+                  <div className="flex gap-2 mt-3">
+                    <span className="text-cyan-400 shrink-0">ты ›</span>
+                    <span className="text-white">Добавь тесты для routes/api.ts</span>
+                  </div>
+
+                  <div className="text-violet-400">🧠 Пишу тесты...</div>
+                  <div className="text-amber-400 mt-1">⚡ Предлагаю создать файл tests/api.test.ts</div>
+                  <div className="text-amber-400">⚡ [a] принять | [r] посмотреть diff | [e] изменить</div>
                 </div>
               </div>
-            </section>
 
-            {/* Single query */}
-            <section>
-              <h3 className="text-lg font-semibold text-slate-200 mb-3 flex items-center gap-2">
-                <Zap className="w-4 h-4 text-amber-400" />
-                Single Query Mode
-              </h3>
-              <CmdBlock
-                title="Terminal"
-                commands={[
-                  '# One-shot query',
-                  'nexus -q "Explain the architecture of this project"',
-                  '',
-                  '# Pipe input',
-                  'cat error.log | nexus -q "Analyze this error and suggest fixes"',
-                  '',
-                  '# With specific model',
-                  'nexus -q "Optimize this SQL query" --model gpt-4o',
-                ]}
-              />
-            </section>
-
-            {/* Keybindings */}
-            <section>
-              <h3 className="text-lg font-semibold text-slate-200 mb-3 flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-blue-400" />
-                Key Bindings
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                 {[
-                  { keys: 'Ctrl+K', action: 'Command Palette' },
-                  { keys: 'Ctrl+L', action: 'Clear screen' },
-                  { keys: 'Ctrl+C', action: 'Cancel current operation' },
-                  { keys: 'Ctrl+D', action: 'Exit session' },
-                  { keys: 'Ctrl+Z', action: 'Undo last file change' },
-                  { keys: 'Esc', action: 'Cancel / go back' },
-                  { keys: 'Tab', action: 'Auto-complete' },
-                  { keys: 'Ctrl+M', action: 'Switch model' },
-                  { keys: 'Ctrl+P', action: 'Switch profile' },
-                  { keys: 'Ctrl+S', action: 'Save session' },
+                  'Объясни что делает этот код',
+                  'Найди все баги в src/',
+                  'Напиши документацию для API',
+                  'Добавь обработку ошибок',
+                  'Оптимизируй этот SQL запрос',
+                  'Создай unit-тесты',
+                ].map(example => (
+                  <div key={example} className="rounded-lg border border-slate-700/50 bg-slate-800/20 px-3 py-2 text-sm text-slate-300 font-mono">
+                    <span className="text-cyan-500 mr-1">›</span> {example}
+                  </div>
+                ))}
+              </div>
+            </StepCard>
+
+            <StepCard number={4} title="Горячие клавиши" icon={<Code2 className="w-5 h-5 text-blue-400" />} color="blue">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {[
+                  { keys: 'Ctrl + K', action: 'Палитра команд (быстрый поиск)' },
+                  { keys: 'Ctrl + L', action: 'Очистить экран' },
+                  { keys: 'Ctrl + C', action: 'Отменить текущую операцию' },
+                  { keys: 'Ctrl + D', action: 'Выйти из NexusAI' },
+                  { keys: 'Ctrl + Z', action: 'Отменить последнее изменение файла' },
+                  { keys: 'Ctrl + M', action: 'Переключить модель' },
+                  { keys: 'Ctrl + P', action: 'Переключить профиль' },
+                  { keys: 'Tab', action: 'Автодополнение' },
                 ].map(kb => (
-                  <div key={kb.keys} className="flex items-center justify-between rounded-lg border border-slate-700/50 bg-slate-800/20 px-4 py-2.5">
+                  <div key={kb.keys} className="flex items-center justify-between rounded-lg border border-slate-700/50 bg-slate-800/20 px-3 py-2">
                     <span className="text-sm text-slate-300">{kb.action}</span>
                     <kbd className="px-2 py-0.5 text-xs font-mono bg-slate-700/50 border border-slate-600/50 rounded text-slate-300">
                       {kb.keys}
@@ -693,164 +873,149 @@ const App: React.FC = () => {
                   </div>
                 ))}
               </div>
-            </section>
-
-            {/* Useful commands */}
-            <section>
-              <h3 className="text-lg font-semibold text-slate-200 mb-3 flex items-center gap-2">
-                <Rocket className="w-4 h-4 text-violet-400" />
-                Useful Commands
-              </h3>
-              <CmdBlock
-                title="Terminal — CLI Reference"
-                commands={[
-                  'nexus                    # Interactive mode',
-                  'nexus -q "query"         # Single query',
-                  'nexus --profile fast     # Use profile',
-                  'nexus --model gpt-4o     # Override model',
-                  'nexus --cwd ./project    # Set working dir',
-                  'nexus init               # Initialize config',
-                  'nexus doctor             # Check installation',
-                  'nexus skills list        # List loaded skills',
-                  'nexus skills install X   # Install skill pack',
-                  'nexus config edit        # Edit config in $EDITOR',
-                  'nexus config show        # Show current config',
-                  'nexus session export     # Export session as MD',
-                  'nexus session resume     # Resume last session',
-                  'nexus cost               # Show cost dashboard',
-                  'nexus update             # Update to latest',
-                ]}
-              />
-            </section>
+            </StepCard>
           </div>
         )}
 
-        {activeTab === 'troubleshoot' && (
+        {/* ═══ ВКЛАДКА: ПРОБЛЕМЫ ═══ */}
+        {activeTab === 'faq' && (
           <div className="space-y-6">
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-amber-400" />
-              Troubleshooting
-            </h2>
+            <div className="rounded-xl border border-amber-500/20 bg-amber-900/10 p-6">
+              <h2 className="text-xl font-bold text-amber-200 mb-2 flex items-center gap-2">
+                <HelpCircle className="w-5 h-5" />
+                Если что-то не работает
+              </h2>
+              <p className="text-slate-300 text-sm">
+                Вот самые частые проблемы и их решения. Нажми на проблему чтобы увидеть подробности.
+              </p>
+            </div>
 
             <div className="space-y-3">
-              <Accordion title="❌  'nexus: command not found'" defaultOpen>
-                <div className="text-sm text-slate-300 space-y-2">
-                  <p>Python bin directory не в PATH. Добавьте:</p>
+              <Accordion title="❌ Команда 'nexus' не найдена" defaultOpen>
+                <div className="text-sm text-slate-300 space-y-3">
+                  <p><strong>Причина:</strong> Папка с Python-программами не добавлена в PATH.</p>
+                  <p><strong>Решение:</strong> Добавь её в настройки терминала:</p>
                   <CmdBlock commands={[
-                    '# For pip install',
-                    'export PATH="$HOME/.local/bin:$PATH"',
-                    '',
-                    '# For venv install',
-                    'source ~/.nexus/venv/bin/activate',
-                    '',
-                    '# Permanent fix (add to ~/.bashrc or ~/.zshrc)',
+                    '# Для Bash (Linux)',
                     'echo \'export PATH="$HOME/.local/bin:$PATH"\' >> ~/.bashrc',
                     'source ~/.bashrc',
+                    '',
+                    '# Для Zsh (macOS)',
+                    'echo \'export PATH="$HOME/.local/bin:$PATH"\' >> ~/.zshrc',
+                    'source ~/.zshrc',
+                    '',
+                    '# Если использовал venv — активируй его:',
+                    'source ~/.nexus/venv/bin/activate',
                   ]} />
                 </div>
               </Accordion>
 
-              <Accordion title="❌  'ModuleNotFoundError: No module named litellm'">
-                <div className="text-sm text-slate-300 space-y-2">
-                  <p>Зависимости не установлены. Переустановите:</p>
+              <Accordion title="❌ Ошибка 'ModuleNotFoundError: No module named litellm'">
+                <div className="text-sm text-slate-300 space-y-3">
+                  <p><strong>Причина:</strong> Зависимости не установились или установились в другое окружение.</p>
                   <CmdBlock commands={[
+                    '# Переустанови пакет',
                     'pip install --upgrade nexus-core',
                     '',
-                    '# Or if using venv, make sure it\'s activated:',
+                    '# Если используешь venv — проверь что он активирован:',
+                    'which python  # должно показывать путь к venv',
                     'source ~/.nexus/venv/bin/activate',
                     'pip install "nexus-core[full]"',
                   ]} />
                 </div>
               </Accordion>
 
-              <Accordion title="❌  API key errors / 401 Unauthorized">
-                <div className="text-sm text-slate-300 space-y-2">
-                  <p>Проверьте, что ключи правильно установлены:</p>
+              <Accordion title="❌ Ошибка 401 / 'Invalid API key'">
+                <div className="text-sm text-slate-300 space-y-3">
+                  <p><strong>Причина:</strong> API ключ не установлен или неправильный.</p>
                   <CmdBlock commands={[
-                    '# Check if keys are set',
+                    '# Проверь что ключ установлен:',
                     'nexus doctor',
                     '',
-                    '# Or verify manually',
+                    '# Или вручную:',
                     'echo $ANTHROPIC_API_KEY',
-                    'echo $OPENAI_API_KEY',
                     '',
-                    '# Re-set if empty',
-                    'export ANTHROPIC_API_KEY="sk-ant-..."',
+                    '# Если пусто — установи:',
+                    'export ANTHROPIC_API_KEY="sk-ant-твой_ключ"',
                     '',
-                    '# Or add to ~/.nexus/.env',
+                    '# Или добавь в ~/.nexus/.env:',
                     'echo "ANTHROPIC_API_KEY=sk-ant-..." >> ~/.nexus/.env',
                   ]} />
+                  <p className="text-xs text-slate-500">
+                    💡 Проверь что ключ правильный — зайди на сайт провайдера и скопируй заново.
+                  </p>
                 </div>
               </Accordion>
 
-              <Accordion title="❌  Ollama connection refused">
-                <div className="text-sm text-slate-300 space-y-2">
-                  <p>Убедитесь, что Ollama запущен:</p>
+              <Accordion title="❌ Ollama не подключается (Connection refused)">
+                <div className="text-sm text-slate-300 space-y-3">
+                  <p><strong>Причина:</strong> Ollama не запущен или модель не скачана.</p>
                   <CmdBlock commands={[
-                    '# Start Ollama',
+                    '# Запусти Ollama:',
                     'ollama serve',
                     '',
-                    '# Check if running',
-                    'curl http://localhost:11434/api/tags',
-                    '',
-                    '# Pull a model',
+                    '# Скачай модель:',
                     'ollama pull codellama:34b',
                     '',
-                    '# Test in NexusAI',
+                    '# Проверь что работает:',
+                    'curl http://localhost:11434/api/tags',
+                    '',
+                    '# Запусти NexusAI с локальным профилем:',
                     'nexus --profile local',
                   ]} />
                 </div>
               </Accordion>
 
-              <Accordion title="❌  Tree-sitter / RAG not working">
-                <div className="text-sm text-slate-300 space-y-2">
-                  <p>Установите опциональные зависимости:</p>
+              <Accordion title="❌ 'Permission denied' при записи файла">
+                <div className="text-sm text-slate-300 space-y-3">
+                  <p><strong>Причина:</strong> Песочница безопасности блокирует путь.</p>
+                  <p><strong>Решение:</strong> Добавь папку в whitelist:</p>
                   <CmdBlock commands={[
-                    '# Install RAG extras',
-                    'pip install "nexus-core[rag]"',
-                    '',
-                    '# Rebuild tree-sitter parsers',
-                    'nexus rag rebuild',
-                    '',
-                    '# Check status',
-                    'nexus rag status',
-                  ]} />
-                </div>
-              </Accordion>
-
-              <Accordion title="❌  Permission denied on file write">
-                <div className="text-sm text-slate-300 space-y-2">
-                  <p>Security sandbox блокирует путь. Добавьте в whitelist:</p>
-                  <CmdBlock commands={[
-                    '# Edit config',
+                    '# Открой конфиг:',
                     'nexus config edit',
                     '',
-                    '# Add to security.sandbox.allowed_paths:',
-                    '#   - "/path/to/your/project"',
+                    '# Найди security.sandbox.allowed_paths и добавь:',
+                    '#   - "/home/user/my-project"',
                     '',
-                    '# Or disable sandbox (not recommended)',
+                    '# Или (НЕ рекомендуется) отключи песочницу:',
                     '#   security.sandbox.enabled: false',
                   ]} />
                 </div>
               </Accordion>
 
-              <Accordion title="💡  Still stuck?">
-                <div className="text-sm text-slate-300 space-y-2">
-                  <p>Попробуйте:</p>
+              <Accordion title="❌ Tree-sitter / RAG не работает">
+                <div className="text-sm text-slate-300 space-y-3">
+                  <p><strong>Причина:</strong> Не установлены опциональные зависимости для RAG.</p>
                   <CmdBlock commands={[
-                    '# Full diagnostic',
+                    '# Установи RAG-компоненты:',
+                    'pip install "nexus-core[rag]"',
+                    '',
+                    '# Перестрой индекс кода:',
+                    'nexus rag rebuild',
+                    '',
+                    '# Проверь статус:',
+                    'nexus rag status',
+                  ]} />
+                </div>
+              </Accordion>
+
+              <Accordion title="💡 Ничего не помогло?">
+                <div className="text-sm text-slate-300 space-y-3">
+                  <p>Попробуй полную диагностику:</p>
+                  <CmdBlock commands={[
+                    '# Подробная диагностика:',
                     'nexus doctor --verbose',
                     '',
-                    '# Reset config to defaults',
+                    '# Сброс конфига:',
                     'nexus init --force',
                     '',
-                    '# Clean reinstall',
+                    '# Полная переустановка:',
                     'pip uninstall nexus-core -y',
                     'pip cache purge',
                     'pip install "nexus-core[full]"',
                   ]} />
                   <p className="mt-3">
-                    Или создайте issue:{' '}
+                    Если проблема осталась — создай issue на GitHub:{' '}
                     <a href="#" className="text-blue-400 hover:underline inline-flex items-center gap-1">
                       github.com/nexusai/nexus-core/issues <ExternalLink className="w-3 h-3" />
                     </a>
@@ -858,21 +1023,49 @@ const App: React.FC = () => {
                 </div>
               </Accordion>
             </div>
+
+            {/* Полезные команды */}
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-blue-400" />
+                Шпаргалка команд
+              </h3>
+              <CmdBlock
+                title="Все команды NexusAI"
+                commands={[
+                  'nexus                    # Запустить агента',
+                  'nexus -q "запрос"        # Один запрос без интерактива',
+                  'nexus --profile fast     # Использовать быстрый профиль',
+                  'nexus --model gpt-4o     # Выбрать конкретную модель',
+                  'nexus --cwd ./проект     # Работать в указанной папке',
+                  'nexus init               # Создать конфиг заново',
+                  'nexus doctor             # Проверить установку',
+                  'nexus skills list        # Список скиллов',
+                  'nexus skills install X   # Установить набор скиллов',
+                  'nexus config edit        # Редактировать конфиг',
+                  'nexus config show        # Показать текущий конфиг',
+                  'nexus session export     # Сохранить сессию в Markdown',
+                  'nexus session resume     # Продолжить прошлую сессию',
+                  'nexus cost               # Сколько денег потрачено',
+                  'nexus update             # Обновить до последней версии',
+                ]}
+              />
+            </div>
           </div>
         )}
       </main>
 
-      {/* ─── Footer ────────────────────────────────────────────────────────── */}
+      {/* ─── Футер ──────────────────────────────────────────────────────── */}
       <footer className="border-t border-slate-800/50 py-8 mt-10">
         <div className="max-w-5xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <Terminal className="w-5 h-5 text-slate-500" />
-              <span className="text-sm text-slate-500">NexusAI Core v1.0.0</span>
+              <span className="text-sm text-slate-500">NexusAI Core v1.0.0 • Инструкция на русском</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-slate-500">
               <a href="#" className="hover:text-slate-300 transition-colors inline-flex items-center gap-1">
-                <BookOpen className="w-3.5 h-3.5" /> Docs
+                <BookOpen className="w-3.5 h-3.5" /> Документация
               </a>
               <a href="#" className="hover:text-slate-300 transition-colors inline-flex items-center gap-1">
                 <GitBranch className="w-3.5 h-3.5" /> GitHub
