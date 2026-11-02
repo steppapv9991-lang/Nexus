@@ -335,6 +335,54 @@ const App: React.FC = () => {
         {/* ═══ ВКЛАДКА: УСТАНОВКА ═══ */}
         {activeTab === 'install' && (
           <div className="space-y-8">
+            {/* Честное предупреждение */}
+            <div className="rounded-xl border border-rose-500/30 bg-rose-900/15 p-5">
+              <h3 className="text-lg font-bold text-rose-200 mb-2 flex items-center gap-2">
+                <AlertCircle className="w-5 h-5" />
+                Честное предупреждение
+              </h3>
+              <p className="text-sm text-slate-300 leading-relaxed">
+                <strong className="text-rose-200">NexusAI — это архитектурный прототип</strong>, который мы спроектировали в предыдущих шагах.
+                Пакет <code className="bg-slate-800 px-1.5 rounded text-rose-200">nexus-core</code> пока <strong>не опубликован</strong> на PyPI,
+                и домен <code className="bg-slate-800 px-1.5 rounded text-rose-200">nexusai.dev</code> не существует.
+              </p>
+              <p className="text-sm text-slate-400 mt-2">
+                Но! Я создал <strong className="text-white">полностью рабочий install.sh скрипт</strong>, который можно использовать,
+                как только будет создан GitHub-репозиторий. А пока — ниже рабочие способы установить ядро локально.
+              </p>
+            </div>
+
+            {/* Самый реалистичный способ */}
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-900/10 p-5">
+              <h3 className="text-lg font-bold text-emerald-200 mb-3 flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5" />
+                ✅ Рабочий способ: установить из исходников прямо сейчас
+              </h3>
+              <p className="text-sm text-slate-300 mb-3">
+                Этот способ работает <strong>прямо сейчас</strong> — просто склонируй ядро (код из предыдущих шагов) в репозиторий и установи:
+              </p>
+              <CmdBlock
+                title="Терминал — Установка из исходников"
+                comment="Создай репозиторий с кодом из прошлых шагов, затем:"
+                commands={[
+                  '# 1. Клонируй репозиторий (замени на свой)',
+                  'git clone https://github.com/ТВОЙ_ЮЗЕР/nexus-core.git',
+                  'cd nexus-core',
+                  '',
+                  '# 2. Создай виртуальное окружение',
+                  'python3 -m venv .venv',
+                  'source .venv/bin/activate',
+                  '',
+                  '# 3. Установи зависимости',
+                  'pip install litellm pyyaml python-dotenv rich textual',
+                  'pip install tree-sitter chromadb',
+                  '',
+                  '# 4. Запусти!',
+                  'python -m nexus_core.main',
+                ]}
+              />
+            </div>
+
             {/* Требования */}
             <div>
               <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
@@ -394,23 +442,55 @@ const App: React.FC = () => {
               <div className="space-y-4">
                 {installMethod === 'quick' && (
                   <>
-                    <div className="rounded-lg border border-emerald-500/20 bg-emerald-900/10 p-4 mb-4">
-                      <p className="text-sm text-emerald-200">
-                        <strong>💡 Самый простой способ</strong> — одна команда делает всё автоматически:
-                        проверяет систему, устанавливает пакет, создаёт конфигурацию.
+                    <div className="rounded-lg border border-amber-500/30 bg-amber-900/15 p-4 mb-4">
+                      <p className="text-sm text-amber-200 flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                        <span>
+                          <strong>⚠️ Важно:</strong> Домен <code className="bg-slate-800 px-1 rounded">nexusai.dev</code> — это концепт из архитектуры.
+                          Реального сайта пока нет. Но скрипт <code className="bg-slate-800 px-1 rounded">install.sh</code> полностью рабочий —
+                          его можно скачать с GitHub (когда репозиторий будет создан) или использовать локальную версию ниже.
+                        </span>
                       </p>
                     </div>
+
+                    <div className="rounded-lg border border-emerald-500/20 bg-emerald-900/10 p-4 mb-4">
+                      <p className="text-sm text-emerald-200">
+                        <strong>💡 Рабочий способ</strong> — скачай скрипт напрямую из репозитория:
+                      </p>
+                    </div>
+
                     <CmdBlock
-                      title="Терминал"
-                      comment="Скопируй и вставь в терминал"
-                      commands={['curl -fsSL https://nexusai.dev/install.sh | bash']}
+                      title="Терминал — Вариант 1: С GitHub (когда репо будет создано)"
+                      comment="Эта команда заработает после публикации репозитория"
+                      commands={[
+                        'curl -fsSL https://raw.githubusercontent.com/nexusai/nexus-core/main/install.sh | bash',
+                      ]}
                     />
+
+                    <div className="my-4 text-center text-xs text-slate-500">— или —</div>
+
+                    <CmdBlock
+                      title="Терминал — Вариант 2: Локальный скрипт"
+                      comment="Скачай install.sh и запусти локально"
+                      commands={[
+                        '# Скачай скрипт (он есть в этом проекте в public/install.sh)',
+                        'curl -fsSL https://nexusai.dev/install.sh -o install.sh',
+                        '',
+                        '# Или скопируй из public/install.sh этого проекта',
+                        '',
+                        '# Сделай исполняемым и запусти:',
+                        'chmod +x install.sh',
+                        './install.sh',
+                      ]}
+                    />
+
                     <div className="text-sm text-slate-400 mt-3">
                       <p className="mb-2">Что делает этот скрипт:</p>
                       <ul className="space-y-1 text-slate-500">
                         <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" /> Проверяет, что Python 3.11+ установлен</li>
-                        <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" /> Устанавливает <code className="text-emerald-300 bg-slate-800 px-1 rounded">nexus-core</code> через pip</li>
-                        <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" /> Создаёт папку <code className="text-emerald-300 bg-slate-800 px-1 rounded">~/.nexus/</code> с настройками</li>
+                        <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" /> Клонирует репозиторий в <code className="text-emerald-300 bg-slate-800 px-1 rounded">~/.nexus/src</code></li>
+                        <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" /> Создаёт виртуальное окружение и устанавливает зависимости</li>
+                        <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" /> Создаёт <code className="text-emerald-300 bg-slate-800 px-1 rounded">~/.nexus/config.yaml</code> и <code className="text-emerald-300 bg-slate-800 px-1 rounded">.env</code></li>
                         <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" /> Добавляет команду <code className="text-emerald-300 bg-slate-800 px-1 rounded">nexus</code> в PATH</li>
                       </ul>
                     </div>
@@ -542,6 +622,99 @@ const App: React.FC = () => {
                 ]}
               />
             </StepCard>
+
+            {/* Как сделать проект реальным */}
+            <div className="rounded-xl border border-violet-500/30 bg-violet-900/10 p-6">
+              <h3 className="text-lg font-bold text-violet-200 mb-3 flex items-center gap-2">
+                <Rocket className="w-5 h-5" />
+                🚀 Как превратить прототип в реальный проект
+              </h3>
+              <p className="text-sm text-slate-300 mb-4">
+                Код из предыдущих шагов — это <strong>готовое ядро</strong>. Чтобы оно реально работало, нужно:
+              </p>
+
+              <div className="space-y-3">
+                <div className="rounded-lg border border-slate-700/50 bg-slate-800/30 p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-violet-600/30 text-xs font-bold text-violet-200">1</span>
+                    <span className="font-semibold text-slate-200">Создай структуру проекта</span>
+                  </div>
+                  <CmdBlock
+                    title="Структура файлов"
+                    commands={[
+                      'nexus-core/',
+                      '├── pyproject.toml          # ← создать!',
+                      '├── README.md',
+                      '├── nexus_core/',
+                      '│   ├── __init__.py',
+                      '│   ├── main.py             # ← из шага "Architecture"',
+                      '│   ├── agent.py',
+                      '│   ├── model_router.py',
+                      '│   ├── skill_manager.py',
+                      '│   ├── context_manager.py',
+                      '│   └── security.py',
+                      '├── skills/',
+                      '│   └── deployment.yaml',
+                      '└── tests/',
+                    ]}
+                  />
+                </div>
+
+                <div className="rounded-lg border border-slate-700/50 bg-slate-800/30 p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-violet-600/30 text-xs font-bold text-violet-200">2</span>
+                    <span className="font-semibold text-slate-200">Добавь pyproject.toml</span>
+                  </div>
+                  <div className="rounded-lg bg-[#0d1117] border border-slate-700/50 p-3 font-mono text-xs overflow-x-auto">
+                    <div className="text-slate-300">[project]</div>
+                    <div className="text-slate-300">name = <span className="text-emerald-300">"nexus-core"</span></div>
+                    <div className="text-slate-300">version = <span className="text-emerald-300">"1.0.0"</span></div>
+                    <div className="text-slate-300">dependencies = [</div>
+                    <div className="text-slate-300">    <span className="text-emerald-300">"litellm&gt;=1.24.0"</span>,</div>
+                    <div className="text-slate-300">    <span className="text-emerald-300">"pyyaml&gt;=6.0"</span>,</div>
+                    <div className="text-slate-300">    <span className="text-emerald-300">"python-dotenv&gt;=1.0"</span>,</div>
+                    <div className="text-slate-300">    <span className="text-emerald-300">"rich&gt;=13.0"</span>,</div>
+                    <div className="text-slate-300">    <span className="text-emerald-300">"textual&gt;=0.40"</span>,</div>
+                    <div className="text-slate-300">]</div>
+                    <div className="text-slate-300 mt-2">[project.scripts]</div>
+                    <div className="text-slate-300">nexus = <span className="text-emerald-300">"nexus_core.main:main"</span></div>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-slate-700/50 bg-slate-800/30 p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-violet-600/30 text-xs font-bold text-violet-200">3</span>
+                    <span className="font-semibold text-slate-200">Опубликуй на GitHub + PyPI</span>
+                  </div>
+                  <CmdBlock
+                    title="Терминал"
+                    commands={[
+                        '# Создай репозиторий на GitHub и запушь код',
+                        'git init',
+                        'git add .',
+                        'git commit -m "Initial commit: NexusAI core"',
+                        'git remote add origin https://github.com/ТВОЙ_ЮЗЕР/nexus-core.git',
+                        'git push -u origin main',
+                        '',
+                        '# (Опционально) Опубликуй на PyPI:',
+                        'pip install build twine',
+                        'python -m build',
+                        'twine upload dist/*',
+                        '',
+                        '# После этого install.sh из шага "Быстрая установка"',
+                        '# будет работать через curl!',
+                    ]}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-lg border border-blue-500/20 bg-blue-900/10 p-3">
+                <p className="text-xs text-blue-200">
+                  <strong>💡 Совет:</strong> Если не хочешь публиковать — просто используй <code className="bg-slate-800 px-1 rounded">pip install -e .</code> локально.
+                  Этого достаточно чтобы команда <code className="bg-slate-800 px-1 rounded">nexus</code> работала в терминале.
+                </p>
+              </div>
+            </div>
           </div>
         )}
 
